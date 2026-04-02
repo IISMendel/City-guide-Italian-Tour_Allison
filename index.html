@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Italy Grand Tour — Allison & Friends</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    h1, h2 { font-family: 'Playfair Display', serif; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .route-line { background: linear-gradient(90deg, #6366f1, #ec4899); }
+    .city-hero { background-size: cover; background-position: center; }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeSlide 0.35s ease both; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    /* ── SVG Icons ── */
+    const MapPin      = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+    const Train       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
+    const ShieldAlert = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>;
+    const Utensils    = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>;
+    const Navigation  = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>;
+    const ExternalLink= p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>;
+    const Info        = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
+    const Heart       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+    const Phone       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
+    const Bus         = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>;
+    const AlertCircle = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
+    const Ticket      = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>;
+    const MessageCircle=p=> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>;
+    const Sunrise     = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>;
+    const Sun         = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
+    const Moon        = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
+    const Luggage     = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2Z"/><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"/><path d="M10 18V4"/><path d="M14 18V4"/></svg>;
+    const Smartphone  = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>;
+    const Euro        = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/></svg>;
+    const Shirt       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>;
+    const Wifi        = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" x2="12.01" y1="20" y2="20"/></svg>;
+    const Droplets    = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>;
+    const Clock       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+    const Plane       = p => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 6.2c-.5.1-.9.5-.8 1.1l.9 3.5c.1.6.6 1 1.2.9L7 11l-2 3.5c-.2.4 0 .9.4 1.1l2 1c.4.2.9.1 1.2-.2l3.4-3.4 4.6 1.7c.4.1.9.1 1.2-.3l1.5-3.4c.2-.4.1-.9-.2-1.2L17 9l.8-2.3 2.8 2.8z"/></svg>;
+
+    /* ── DATA ── */
+    const itineraryData = {
+      venice: {
+        id: 'venice', name: 'Venice', subtitle: 'The Floating City',
+        emoji: '🚤', color: 'bg-teal-600', accent: '#0d9488',
+        guideNote: "Welcome to Venice! With limited time, don't worry about getting lost—it's part of the magic. Stick to the main sestieri (districts) like San Marco and San Polo.",
+        transport: "No cars here! Walk from Santa Lucia Train Station. To save time and rest your feet, take the Vaporetto (Water Bus) Line 1 down the Grand Canal. It's safe everywhere, just beware of pickpockets on crowded Vaporettos.",
+        trainDeparture: "Head back to 'Venezia Santa Lucia' station. You can walk or take Vaporetto. Arrive 20 mins early: the platform (binario) is often announced at the last minute.",
+        transportLink: { name: "ACTV (Vaporetto Tickets & Info)", url: "https://actv.avmspa.it/en" },
+        taxiPhone: "+39 041 5964",
+        mustSee: [
+          { name: "Piazza San Marco & St. Mark's Basilica", link: "https://basilicasanmarco.skiperformance.com/" },
+          { name: "Doge's Palace & Bridge of Sighs", link: "https://palazzoducale.visitmuve.it/en/pianifica-la-tua-visita/tickets/" },
+          { name: "Rialto Bridge and the Markets", link: null },
+          { name: "Peggy Guggenheim Collection", link: "https://www.guggenheim-venice.it/en/visit/tickets/" }
+        ],
+        food: [
+          { name: "Cantina Do Mori", desc: "Oldest bacaro (wine bar) for quick cicchetti (tapas).", link: "https://www.google.com/maps/search/?api=1&query=Cantina+Do+Mori+Venezia", price: "budget" },
+          { name: "Osteria al Squero", desc: "Great cicchetti with a view of a gondola boatyard.", link: "https://osteriaalsquero.wordpress.com/", price: "budget" },
+          { name: "Rosa Salva", desc: "Historic pastry shop. Perfect for morning espresso and brioche.", link: "https://www.rosasalva.it/en/", price: "budget" },
+          { name: "Caffe Florian", desc: "Iconic (but pricey) coffee right in St. Mark's Square.", link: "https://caffeflorian.com/en/", price: "pricey" },
+          { name: "Ristorante Quadri", desc: "Michelin-starred dining right in St. Mark's Square.", link: "https://alajmo.it/pages/ristorante-quadri", price: "pricey" }
+        ],
+        mapQuery: "Venice+Italy",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Walk from Santa Lucia station through Cannaregio — quieter, more local, zero tourists.",
+            "Stop at a bar for a standing espresso and a tramezzino sandwich (don't sit down — it triples the price!).",
+            "Rialto Bridge, then dive into the fish & vegetable markets just beyond it (open until ~1pm)."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "Piazza San Marco: enter St. Mark's Basilica (free, but book the timed-entry skip-the-line online).",
+            "Doge's Palace — allow at least 1.5 hours. The Bridge of Sighs is inside, not just on a canal photo.",
+            "Walk through San Polo and into Dorsoduro for a quick look at the Guggenheim terrace (great canal view, even from outside)."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Take Vaporetto Line 1 down the Grand Canal at golden hour — 45 minutes of pure magic for ~€9.50.",
+            "Aperitivo hour: cicchetti and prosecco at any bacaro in the Cannaregio or Dorsoduro area.",
+            "Return to Piazza San Marco after 9pm — it empties out and becomes hauntingly beautiful."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Burano", time: "45 min by Vaporetto", desc: "Candy-colored fishermen's houses on a tiny island. Instagram paradise, genuinely magical.", emoji: "🎨", link: "https://actv.avmspa.it/en" },
+          { name: "Murano", time: "15 min by Vaporetto", desc: "Watch master glassblowers at work. Free to watch demonstrations in most studios.", emoji: "🔮", link: "https://actv.avmspa.it/en" },
+          { name: "Verona", time: "1h 10 min by train", desc: "Romeo & Juliet's city. The Roman Arena, Juliet's balcony, beautiful piazzas. Perfect half-day.", emoji: "❤️", link: "https://www.trenitalia.com/en.html" }
+        ]
+      },
+      rome: {
+        id: 'rome', name: 'Rome', subtitle: 'The Eternal City',
+        emoji: '🏛️', color: 'bg-red-700', accent: '#b91c1c',
+        guideNote: "Rome is massive, but the historic center is surprisingly walkable. Wear very comfortable shoes for the cobblestones (sampietrini). Rome rewards those who wander.",
+        transport: "Take Metro Line B to 'Colosseo'. Walk from the Pantheon to Trevi Fountain. Avoid hanging around Termini Station late at night. The historic center (Centro Storico) is very safe.",
+        trainDeparture: "Your main hub is 'Roma Termini' (reachable via Metro A or B). It's a massive station with shopping and food. Keep an eye on the huge departure boards and watch your bags.",
+        transportLink: { name: "ATAC (Rome Public Transport)", url: "https://www.atac.roma.it/en" },
+        taxiPhone: "+39 06 3570",
+        mustSee: [
+          { name: "Colosseum & Roman Forum", link: "https://ticketing.colosseo.it/en/" },
+          { name: "Vatican Museums & Sistine Chapel (Book weeks in advance!)", link: "https://m.museivaticani.va/content/museivaticani-mobile/en.html" },
+          { name: "Trevi Fountain (go early morning!)", link: null },
+          { name: "The Pantheon", link: "https://portale.museiitaliani.it/b2c/#it/buyTicketless" },
+          { name: "Spanish Steps", link: null }
+        ],
+        food: [
+          { name: "Trapizzino", desc: "Best street food: pizza pockets stuffed with Roman classics.", link: "https://www.trapizzino.it/en/", price: "budget" },
+          { name: "Tonnarello", desc: "Famous spot in Trastevere for pasta in a pan. Expect a line.", link: "https://tonnarello.it/en/", price: "budget" },
+          { name: "Salumeria Roscioli", desc: "Incredible Carbonara and deli. Booking required.", link: "https://www.salumeriaroscioli.com/en/", price: "pricey" },
+          { name: "Aroma Restaurant", desc: "Michelin-starred rooftop dining with a direct view of the Colosseum.", link: "https://www.aromarestaurant.it/en/", price: "pricey" },
+          { name: "Giolitti", desc: "Historic gelateria near the Pantheon.", link: "https://www.giolitti.it/en/", price: "budget" }
+        ],
+        mapQuery: "Centro+Storico+Rome",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Trevi Fountain at 7:30am — you'll nearly have it to yourself. Throw the coin, take the photo, leave before the crowds arrive.",
+            "Walk to the Pantheon (opens 9am, book timed entry in advance — €5). One of the most perfect buildings ever made.",
+            "Espresso standing at Sant'Eustachio il Caffè, just steps from the Pantheon — Rome's best coffee, argue with us."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "Metro Line B to Colosseo. Book Colosseum + Roman Forum together (same ticket). Give yourself 2–3 hours minimum.",
+            "Walk up Palatine Hill above the Forum for views over the ruins — included in the Colosseum ticket.",
+            "Walk to Circus Maximus, then up Aventine Hill for the Orange Garden and the famous Knights of Malta keyhole (view of St. Peter's perfectly framed)."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Cross the Tiber to Trastevere for dinner — the neighborhood is lively, beautiful, and full of good trattorias.",
+            "Walk across Ponte Sisto to Campo de' Fiori for a post-dinner drink (busy, social, fun).",
+            "Night walk: Piazza Navona is stunning after dark, and it's a short stroll from Campo de' Fiori."
+          ]}
+        ],
+        tour2day: [
+          { time: "Day 2 — Morning", icon: "🕍", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", items: [
+            "Vatican Museums (MUST pre-book — tickets sell out weeks ahead). Plan 3 hours minimum.",
+            "The Sistine Chapel is at the end of the museum route — no photos allowed, but yes, everyone does it.",
+            "St. Peter's Basilica (free entry, no booking needed) and climb the dome for panoramic views."
+          ]},
+          { time: "Day 2 — Afternoon", icon: "🛍️", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-800", items: [
+            "Walk across Castel Sant'Angelo — impressive fortress between Vatican and historic center.",
+            "Via dei Coronari for antique shops, then Piazza Navona for gelato.",
+            "Spanish Steps: best enjoyed early evening when locals gather. Grab a gelato from Giolitti nearby."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Tivoli (Villa d'Este)", time: "1h by train + bus", desc: "Jaw-dropping Renaissance gardens with hundreds of fountains. A UNESCO World Heritage site.", emoji: "⛲", link: "https://www.trenitalia.com/en.html" },
+          { name: "Ostia Antica", time: "30 min by Metro + train", desc: "Rome's own Pompeii — ancient port city, remarkably preserved, far fewer tourists.", emoji: "🏺", link: "https://www.trenitalia.com/en.html" },
+          { name: "Orvieto", time: "1h 15 min by train", desc: "Dramatic hilltop town with a stunning Gothic cathedral facade. Medieval and perfect.", emoji: "⛪", link: "https://www.trenitalia.com/en.html" }
+        ]
+      },
+      naples: {
+        id: 'naples', name: 'Naples', subtitle: 'Heart of the South',
+        emoji: '🍕', color: 'bg-blue-600', accent: '#2563eb',
+        guideNote: "Naples is vibrant, chaotic, and beautiful. Keep your bags zipped and close to you, especially near Piazza Garibaldi (Central Station). Don't let the energy intimidate you — lean into it.",
+        transport: "Walk down Spaccanapoli (the main historic street). Take the Metro Line 1 (Toledo station is stunning art) to move faster.",
+        trainDeparture: "High-speed trains leave from 'Napoli Centrale' (Piazza Garibaldi). Use Metro Line 1 to get there. Give yourself extra time to navigate the chaotic station entrance.",
+        transportLink: { name: "ANM (Naples Metro & Buses)", url: "https://www.anm.it/" },
+        taxiPhone: "+39 081 8888",
+        mustSee: [
+          { name: "Spaccanapoli & Centro Storico", link: null },
+          { name: "Veiled Christ at Sansevero Chapel (Mind-blowing sculpture — book ahead)", link: "https://www.museosansevero.it/en/tickets-and-info/" },
+          { name: "Naples National Archaeological Museum (MANN)", link: "https://mann-napoli.it/en/tickets/" },
+          { name: "Piazza del Plebiscito & Castel dell'Ovo", link: null }
+        ],
+        food: [
+          { name: "L'Antica Pizzeria da Michele", desc: "The 'Eat Pray Love' pizza. Long lines, but worth it.", link: "https://www.damichele.net/", price: "budget" },
+          { name: "Gino e Toto Sorbillo", desc: "Legendary pizza right on Via dei Tribunali.", link: "https://www.sorbillo.it/", price: "budget" },
+          { name: "Trattoria Nennella", desc: "Loud, fun, and ultra-traditional Neapolitan food.", link: "https://trattorianennella.it/", price: "budget" },
+          { name: "Palazzo Petrucci", desc: "Refined Michelin-starred dining with sea views.", link: "https://www.palazzopetrucci.it/", price: "pricey" },
+          { name: "Sfogliatella Mary", desc: "Grab a warm, flaky sfogliatella in Galleria Umberto I.", link: "https://www.google.com/maps/search/?api=1&query=Sfogliatella+Mary+Naples", price: "budget" }
+        ],
+        mapQuery: "Spaccanapoli+Naples",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Start with a sfogliatella (flaky pastry) at Sfogliatella Mary in Galleria Umberto I — warm from the oven, life-changing.",
+            "Walk the length of Spaccanapoli (Via dei Tribunali to Via Benedetto Croce) — this straight Roman road cuts the city in half.",
+            "Sansevero Chapel: the Veiled Christ sculpture is simply unbelievable. Book tickets the night before, it sells out."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "Pizza lunch at da Michele or Sorbillo — arrive early or be ready to wait in line. There is no menu: just Margherita or Marinara.",
+            "Piazza del Plebiscito (Naples' grand square) and the Royal Palace, then a walk along the Lungomare seafront.",
+            "Castel dell'Ovo on the waterfront — the views of the bay and Vesuvius behind you are stunning."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Naples after dark is electric. The Quartieri Spagnoli (Spanish Quarter) alleys fill with locals and smell of ragù.",
+            "Trattoria Nennella for dinner — they pour wine in ceramic bowls and the waiters sing. Pure Naples.",
+            "End with a limoncello spritz at a bar with a view of the illuminated bay."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Pompeii", time: "35 min by Circumvesuviana train", desc: "Already in your itinerary — but worth noting you can do both Naples and Pompeii in the same day.", emoji: "🌋", link: "https://www.eavsrl.it/web/en" },
+          { name: "Amalfi Coast (Positano)", time: "1.5–2h by ferry or bus", desc: "Dramatic cliffs, turquoise water, colorful villages. Ferry from Molo Beverello is the most scenic way.", emoji: "⛵", link: "https://www.alilauro.it/en/" },
+          { name: "Capri", time: "50 min by hydrofoil", desc: "The Blue Grotto, the Faraglioni rocks, limoncello everywhere. Even a half-day is worth it.", emoji: "🏝️", link: "https://www.alilauro.it/en/" }
+        ]
+      },
+      pompeii: {
+        id: 'pompeii', name: 'Pompeii', subtitle: 'Frozen in Time',
+        emoji: '🌋', color: 'bg-orange-800', accent: '#9a3412',
+        guideNote: "This is a quick day trip from Naples. Bring water, a hat, and sunscreen—there is very little shade in the ruins. Wear closed-toe shoes — the ancient cobblestones are uneven.",
+        transport: "Take the 'Circumvesuviana' local train from Napoli to 'Pompei Scavi'. Watch your pockets closely on this train. Inside the ruins, it's completely safe.",
+        trainDeparture: "Take the Circumvesuviana back from 'Pompei Scavi' directly to 'Napoli Piazza Garibaldi', where you can catch your high-speed train connection.",
+        transportLink: { name: "EAV (Circumvesuviana Trains)", url: "https://www.eavsrl.it/web/en" },
+        taxiPhone: "+39 081 8502200",
+        mustSee: [
+          { name: "Pompeii Archaeological Park (Forum, Plaster Casts, Lupanar)", link: "https://guide.pompeiisites.org/en/tickets/" },
+          { name: "Villa of the Mysteries (incredible preserved frescoes)", link: null }
+        ],
+        food: [
+          { name: "Grab a panino before entering", desc: "Eat at the cafes outside the entrance before going in — food inside is overpriced.", link: "https://www.google.com/maps/search/?api=1&query=Pompei+Scavi+restaurants", price: "budget" },
+          { name: "Hortus", desc: "Nice courtyard dining very close to the archaeological park.", link: "https://www.google.com/maps/search/?api=1&query=Hortus+Pompei", price: "budget" },
+          { name: "Caupona", desc: "Eat like an ancient Roman (themed restaurant, immersive experience).", link: "https://www.caupona.it/en/", price: "pricey" },
+          { name: "President", desc: "High-end dining with modern takes on local ingredients.", link: "https://www.ristorantepresident.it/", price: "pricey" }
+        ],
+        mapQuery: "Pompeii+Archaeological+Park",
+        tour: [
+          { time: "Morning (arrive early!)", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Arrive by 9am when gates open — it gets brutally hot and crowded by midday. Buy tickets online the day before.",
+            "Start at the Forum (the city's heart) to understand the layout, then head toward the Forum Baths.",
+            "Via dell'Abbondanza — the main shopping street of ancient Pompeii, with remarkably intact storefronts."
+          ]},
+          { time: "Mid-morning", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "The Lupanar (ancient brothel) — historically significant, graphically decorated. Line moves fast.",
+            "House of the Faun — one of the grandest private residences, famous for its mosaic floors.",
+            "The plaster casts of victims: haunting, sobering, unforgettable. Located near the Forum granary."
+          ]},
+          { time: "Before leaving", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Walk to the Villa of the Mysteries at the far west edge — it's a longer walk but worth it for the famous purple frescoes.",
+            "Exit by 1pm: it's the hottest part of the day and the site offers almost no shade.",
+            "Grab lunch outside the gates, then Circumvesuviana back to Naples for your next connection."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Mount Vesuvius", time: "30 min by bus from Pompeii", desc: "Hike to the crater rim. Buses run from outside the archaeological site. Views over the Bay of Naples.", emoji: "🏔️", link: "https://www.vesuvioinbus.it/" },
+          { name: "Herculaneum (Ercolano)", time: "20 min by Circumvesuviana", desc: "Smaller than Pompeii but better preserved — wooden furniture, food still in jars. Far fewer crowds.", emoji: "🏺", link: "https://www.eavsrl.it/web/en" }
+        ]
+      },
+      florence: {
+        id: 'florence', name: 'Florence', subtitle: 'Cradle of the Renaissance',
+        emoji: '🎨', color: 'bg-purple-700', accent: '#7e22ce',
+        guideNote: "Heading back north! Florence's center is compact and pedestrian-friendly. You can walk everywhere from the train station in 15 minutes. Every street corner is a painting.",
+        transport: "Arrive at Santa Maria Novella (SMN). You don't need buses — walk straight to the Duomo. The whole historical center is safe and beautiful.",
+        trainDeparture: "Depart from 'Firenze Santa Maria Novella' (often written as Firenze S.M.N.). It's right in the city center, easily reachable on foot.",
+        transportLink: { name: "Autolinee Toscane (Florence Transit)", url: "https://www.at-bus.it/en" },
+        taxiPhone: "+39 055 4242",
+        mustSee: [
+          { name: "The Duomo (Cathedral of Santa Maria del Fiore) & Baptistery", link: "https://tickets.duomo.firenze.it/" },
+          { name: "Uffizi Gallery (Book ahead!)", link: "https://www.b-ticket.com/b-ticket/uffizi/" },
+          { name: "Accademia Gallery (To see Michelangelo's David)", link: "https://www.b-ticket.com/b-ticket/uffizi/" },
+          { name: "Ponte Vecchio", link: null },
+          { name: "Piazzale Michelangelo (For sunset views over the city)", link: null }
+        ],
+        food: [
+          { name: "All'Antico Vinaio", desc: "Famous huge schiacciata sandwiches. Great for walking.", link: "https://www.allanticovinaio.com/", price: "budget" },
+          { name: "Mercato Centrale", desc: "Massive indoor food market. Everyone can pick what they want.", link: "https://www.mercatocentrale.com/florence/", price: "budget" },
+          { name: "Trattoria Mario", desc: "Authentic Florentine steak (Bistecca) and lively atmosphere.", link: "https://trattoriamario.com/en/", price: "budget" },
+          { name: "Buca Lapi", desc: "Oldest restaurant in Florence, famous for its premium Bistecca.", link: "https://www.bucalapi.com/", price: "pricey" },
+          { name: "Gelateria dei Neri", desc: "Often considered the best gelato in Florence.", link: "https://www.google.com/maps/search/?api=1&query=Gelateria+dei+Neri+Florence", price: "budget" }
+        ],
+        mapQuery: "Florence+Duomo",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Piazza del Duomo at 8am: the cathedral's green-white-pink marble glows in morning light with almost no crowds.",
+            "Climb Giotto's Bell Tower (85m, 414 steps) — better views of the dome than the dome itself, and shorter lines.",
+            "Baptistery of San Giovanni: the famous bronze Gates of Paradise on the east door are a Renaissance masterpiece."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "Uffizi Gallery (pre-book!): Botticelli's Birth of Venus, Leonardo, Caravaggio — allow 2 hours minimum.",
+            "Walk to Ponte Vecchio (the bridge covered in jewelry shops) and cross into Oltrarno — the less-touristy south bank.",
+            "Climb to Piazzale Michelangelo (20 min walk uphill, or bus #13 from the center) for the iconic Florence panorama."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Dinner in Oltrarno or the Santo Spirito neighborhood — more local, less tourist-priced than the center.",
+            "A scoop of gelato at Gelateria dei Neri or Brac and a walk back over Ponte Vecchio at dusk.",
+            "Piazza della Repubblica with its carousel lit up at night — a classic Florentine evening scene."
+          ]}
+        ],
+        tour2day: [
+          { time: "Day 2 — Morning", icon: "🗿", bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", items: [
+            "Accademia Gallery to see Michelangelo's David (pre-book!) — seeing it in person is genuinely different from photos.",
+            "Also in the Accademia: Michelangelo's unfinished 'Prisoners' sculptures — arguably more powerful than the David.",
+            "Mercato Centrale upstairs for a market breakfast: espresso, pastry, fresh produce."
+          ]},
+          { time: "Day 2 — Afternoon", icon: "🏰", bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-800", items: [
+            "Palazzo Pitti (across the Arno) and its Boboli Gardens — gorgeous formal Italian garden, perfect for a slow afternoon.",
+            "The Brancacci Chapel in Santa Maria del Carmine: Masaccio's frescoes that influenced every Renaissance artist after him.",
+            "Evening aperitivo in the Oltrarno neighborhood — local bars, lower prices, great atmosphere."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Siena", time: "1h 15 min by bus (Sena/FlixBus)", desc: "Medieval masterpiece. The Piazza del Campo is one of the world's great public squares. Totally different vibe from Florence.", emoji: "🏰", link: "https://www.flixbus.com/" },
+          { name: "Pisa", time: "1h by train", desc: "Yes, it's touristy — but the Leaning Tower is genuinely impressive, and the Field of Miracles is beautiful.", emoji: "🗼", link: "https://www.trenitalia.com/en.html" },
+          { name: "Cinque Terre", time: "2h by train (change in La Spezia)", desc: "Five rainbow-colored villages on dramatic cliffs. Buy the Cinque Terre Card for hiking + trains between villages.", emoji: "🌊", link: "https://www.cinqueterre.eu.com/en/cinque-terre-card" }
+        ]
+      },
+      bologna: {
+        id: 'bologna', name: 'Bologna', subtitle: 'The Fat, The Learned, The Red',
+        emoji: '🍝', color: 'bg-amber-600', accent: '#d97706',
+        guideNote: "The culinary capital of Italy! Perfect for a stopover. The city is famous for its porticos (covered walkways), so it's great even if it rains. Everything is within walking distance.",
+        transport: "From Bologna Centrale, walk straight down Via dell'Indipendenza to Piazza Maggiore. It's a safe 20-minute walk under beautiful porticos.",
+        trainDeparture: "Depart from 'Bologna Centrale'. Warning: high-speed trains often depart from the underground levels ('Sotterranea'), so factor in 10 extra minutes to go down the escalators!",
+        transportLink: { name: "TPER (Bologna Transit)", url: "https://www.tper.it/" },
+        taxiPhone: "+39 051 372727",
+        mustSee: [
+          { name: "Piazza Maggiore & Basilica di San Petronio", link: null },
+          { name: "The Two Towers (Due Torri) — climb the Asinelli Tower!", link: "https://www.bolognawelcome.com/en/places/towers/two-towers" },
+          { name: "The Archiginnasio (Oldest university building)", link: "https://www.archiginnasio.it/en" },
+          { name: "Quadrilatero (Historic food market streets)", link: null }
+        ],
+        food: [
+          { name: "Sfoglia Rina", desc: "Fresh handmade pasta for lunch. You might have to wait in line.", link: "https://www.sfogliarina.it/", price: "budget" },
+          { name: "Tamburini", desc: "Incredible deli to buy Parmigiano and Balsamic to take home.", link: "https://www.tamburini.com/", price: "budget" },
+          { name: "Trattoria da Me", desc: "Amazing traditional food. Try the cheese gelato! Booking a must.", link: "https://www.trattoriadame.it/", price: "budget" },
+          { name: "I Portici", desc: "Michelin-starred elegance inside a stunning theater.", link: "https://www.iporticihotel.com/ristorante-i-portici/", price: "pricey" },
+          { name: "Cremeria Cavour", desc: "Exquisite gelato under the porticos.", link: "https://www.cremeriacavour.it/", price: "budget" }
+        ],
+        mapQuery: "Piazza+Maggiore+Bologna",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Walk from Bologna Centrale down Via dell'Indipendenza under the porticos straight to Piazza Maggiore.",
+            "Basilica di San Petronio on the piazza — one of the largest Gothic churches in Italy, still technically unfinished.",
+            "The Due Torri (Two Towers): climb the Asinelli Tower (498 steps) for the best view in Emilia-Romagna."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "The Quadrilatero: medieval market streets packed with food stalls — Parmigiano wheels, Prosciutto di Parma, Mortadella. This is lunch.",
+            "The Archiginnasio: oldest university building in Europe, with its ornate Anatomical Theatre (a wooden room built for dissections).",
+            "Slow walk back under the porticos — Bologna has 38km of covered walkways, more than anywhere else in the world."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Aperitivo Bolognese: many bars offer free food platters with drinks from 6–9pm. Budget eating sorted.",
+            "Via del Pratello or Via Zamboni (student street near the university) for an authentic local evening.",
+            "End with a gelato from Cremeria Cavour — try the crema di Parmigiano if you dare."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Modena", time: "15 min by train", desc: "Birthplace of Enzo Ferrari and Luciano Pavarotti. The Ferrari Museum is just outside town. Try the real Aceto Balsamico.", emoji: "🏎️", link: "https://www.trenitalia.com/en.html" },
+          { name: "Ferrara", time: "30 min by train", desc: "Perfectly preserved Renaissance city with an intact medieval wall. Cycle around the walls like a local.", emoji: "🚲", link: "https://www.trenitalia.com/en.html" },
+          { name: "Parma", time: "55 min by train", desc: "Parmigiano-Reggiano, Prosciutto di Parma, beautiful Romanesque cathedral. Elegant and underrated.", emoji: "🧀", link: "https://www.trenitalia.com/en.html" }
+        ]
+      },
+      milan: {
+        id: 'milan', name: 'Milan', subtitle: 'Fashion & Future',
+        emoji: '💎', color: 'bg-slate-800', accent: '#1e293b',
+        guideNote: "Your final stop before heading out! Milan is fast-paced and stylish. The historic center is compact and walkable. It's a city that rewards going slightly off the main tourist path.",
+        transport: "From Milano Centrale, take Metro Line 3 (Yellow) to 'Duomo'. The Centrale area can be sketchy at night, so move directly to the Metro.",
+        trainDeparture: "Your final departure is likely from 'Milano Centrale'. Take Metro Line 2 or 3. It's a magnificent but huge architectural marvel — look up at the ceiling before finding your platform!",
+        transportLink: { name: "ATM (Milan Metro & Trams)", url: "https://www.atm.it/en" },
+        taxiPhone: "+39 02 4040",
+        mustSee: [
+          { name: "The Duomo (take the elevator to the roof!)", link: "https://ticket.duomomilano.it/en/" },
+          { name: "The Last Supper at Santa Maria delle Grazie (Book MONTHS ahead)", link: "https://cenacolovinciano.org/en/" },
+          { name: "Galleria Vittorio Emanuele II (Luxury shopping arcade)", link: null },
+          { name: "Sforzesco Castle", link: "https://www.milanocastello.it/en" },
+          { name: "Navigli Canals", link: null }
+        ],
+        food: [
+          { name: "Luini", desc: "Famous panzerotti right behind the Duomo. Fast and delicious.", link: "http://www.luini.it/", price: "budget" },
+          { name: "Piz", desc: "Super fun, fast, and friendly pizzeria in the center.", link: "https://www.google.com/maps/search/?api=1&query=Piz+Milano", price: "budget" },
+          { name: "Terrazza Aperol", desc: "Aperitivo with a direct view of the Duomo. You pay for the view.", link: "https://www.terrazzaaperol.it/en/", price: "pricey" },
+          { name: "Ristorante Cracco", desc: "Gourmet dining inside the Galleria by a famous Italian chef.", link: "https://ristorantecracco.it/en/", price: "pricey" },
+          { name: "Marchesi 1824", desc: "Historic pastry shop inside the Galleria for fancy coffee.", link: "https://www.pasticceriamarchesi.com/", price: "pricey" }
+        ],
+        mapQuery: "Piazza+del+Duomo+Milan",
+        tour: [
+          { time: "Morning", icon: "🌅", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", items: [
+            "Milan Duomo: queue early or book timed entry online. Take the elevator to the roof — walking among the marble spires is surreal.",
+            "Galleria Vittorio Emanuele II: the grand glass-vaulted arcade next to the Duomo. Spin on the bull mosaic on the floor for good luck (it's a tradition).",
+            "Panzerotti from Luini — the best quick breakfast in Milan, just behind the cathedral."
+          ]},
+          { time: "Afternoon", icon: "☀️", bg: "bg-sky-50", border: "border-sky-200", text: "text-sky-800", items: [
+            "Sforzesco Castle and its free museums — the last unfinished Michelangelo sculpture (the Rondanini Pietà) is here, and it's extraordinary.",
+            "Walk through the Sempione Park behind the castle for a breather, then into the Brera neighborhood — art galleries, boutiques, great cafés.",
+            "The Last Supper (if you booked months ahead) is in Santa Maria delle Grazie, 15 min walk from the Castello."
+          ]},
+          { time: "Evening", icon: "🌙", bg: "bg-indigo-50", border: "border-indigo-200", text: "text-indigo-800", items: [
+            "Navigli canals district for the traditional Milanese aperitivo (Aperol Spritz + free food buffet, 6–9pm). Very lively.",
+            "Dinner in Navigli or Isola neighborhood — both are local, unpretentious, and excellent.",
+            "Goodbye Italy moment: Terrazza Aperol overlooking the Duomo lit up at night is as dramatic as it gets."
+          ]}
+        ],
+        dayTrips: [
+          { name: "Lake Como", time: "1h by train to Como S. Giovanni", desc: "The most glamorous lake in Europe. Take a ferry between the villages — Bellagio, Varenna, Menaggio.", emoji: "⛵", link: "https://www.trenitalia.com/en.html" },
+          { name: "Bergamo Alta", time: "50 min by train + funicular", desc: "Perfectly preserved medieval upper city on a hilltop. Beautiful, uncrowded, and very photogenic.", emoji: "🏰", link: "https://www.trenitalia.com/en.html" },
+          { name: "Lake Maggiore (Stresa)", time: "1h by train", desc: "Borromean Islands with elaborate palace gardens are reachable by boat from Stresa pier.", emoji: "🌸", link: "https://www.trenitalia.com/en.html" }
+        ]
+      }
+    };
+
+    const cityKeys = Object.keys(itineraryData);
+
+    const survivalPhrases = [
+      { eng: "Hello / Good morning", ita: "Buongiorno", phon: "bwon-JOR-noh" },
+      { eng: "Hi / Bye (informal)", ita: "Ciao", phon: "CHOW" },
+      { eng: "Please", ita: "Per favore", phon: "pehr fah-VOH-reh" },
+      { eng: "Thank you", ita: "Grazie", phon: "GRAHT-see-eh" },
+      { eng: "Do you speak English?", ita: "Parla inglese?", phon: "PAR-lah een-GLEH-zeh?" },
+      { eng: "Where is the bathroom?", ita: "Dov'è il bagno?", phon: "doh-VEH eel BAHN-yoh?" },
+      { eng: "The check/bill, please", ita: "Il conto, per favore", phon: "eel KOHN-toh, pehr fah-VOH-reh" },
+      { eng: "One glass of wine", ita: "Un bicchiere di vino", phon: "oon beek-KYEH-reh dee VEE-noh" },
+      { eng: "It's delicious", ita: "È buonissimo", phon: "eh bwoh-NEES-see-moh" },
+      { eng: "Excuse me / I'm sorry", ita: "Mi scusi / Scusi", phon: "mee SKOO-zee" },
+      { eng: "How much does it cost?", ita: "Quanto costa?", phon: "KWAHN-toh KOS-tah?" },
+      { eng: "Help / Emergency!", ita: "Aiuto!", phon: "ah-YOO-toh!" }
+    ];
+
+    const practicalEssentials = [
+      {
+        icon: "💶", title: "Money & Tipping",
+        color: "bg-emerald-900/60", border: "border-emerald-700",
+        items: [
+          "Cards (Visa/Mastercard) are accepted almost everywhere. Bring some cash for small bars, markets, and bus tickets.",
+          "ATMs (Bancomat) are widely available. Use bank ATMs, not standalone machines in tourist areas — higher fees.",
+          "Tipping is NOT expected like in the US. Rounding up or leaving €1–2 for table service is generous and appreciated.",
+          "Watch for 'coperto' (cover charge €1–3) and 'servizio' (service charge 10–15%) on restaurant bills — these are legal but should be stated upfront."
+        ]
+      },
+      {
+        icon: "📶", title: "SIM Card & Internet",
+        color: "bg-sky-900/60", border: "border-sky-700",
+        items: [
+          "Best option: buy an Italian SIM at any airport or train station. TIM and WindTre offer tourist plans with 20–50GB data from ~€15.",
+          "eSIM alternative: Airalo, Holafly, or your US carrier's international plan. Set it up before you leave.",
+          "Major train stations (Termini, Centrale, S.M.N.) have free WiFi. So do most hotels and cafés.",
+          "Google Maps works offline: download map areas for each city before you leave your hotel in the morning."
+        ]
+      },
+      {
+        icon: "👗", title: "Dress Code for Churches",
+        color: "bg-purple-900/60", border: "border-purple-700",
+        items: [
+          "ALL churches require: shoulders covered, knees covered. No exceptions — you will be turned away at St. Peter's, the Duomo, etc.",
+          "Easy solution: carry a light scarf or sarong in your bag. You can wrap it around your shoulders or waist in seconds.",
+          "Disposable paper shawls are sometimes available at major church entrances (St. Peter's has them free), but don't count on it.",
+          "This applies equally to everyone regardless of gender."
+        ]
+      },
+      {
+        icon: "🕐", title: "Opening Hours & Mondays",
+        color: "bg-rose-900/60", border: "border-rose-700",
+        items: [
+          "⚠️ Most state museums and galleries are CLOSED ON MONDAYS. Always check before planning your day.",
+          "Many churches have a long lunch break: typically closed 12:30–3:30pm. Plan around this.",
+          "Book major attractions online in advance (Colosseum, Vatican, Uffizi, Last Supper). Walk-up queues can be 2–3 hours.",
+          "Restaurants typically serve lunch 12:30–2:30pm and dinner 7:30–10pm. Kitchens close in between — plan accordingly."
+        ]
+      },
+      {
+        icon: "💧", title: "Water & Health",
+        color: "bg-teal-900/60", border: "border-teal-700",
+        items: [
+          "Italian tap water is perfectly safe to drink everywhere — it's often excellent quality.",
+          "Rome has 'nasoni' (little nose fountains) on street corners all over the city. Fill your water bottle for free.",
+          "In summer, drink constantly — the Italian sun is intense, especially in Pompeii (no shade) and in the big piazzas.",
+          "Farmacia (pharmacy) signs are a green cross. They can give advice on minor ailments — very helpful and usually English-speaking."
+        ]
+      },
+      {
+        icon: "👜", title: "Safety & Pickpockets",
+        color: "bg-orange-900/60", border: "border-orange-700",
+        items: [
+          "Pickpockets target tourists in crowded places: Vaporettos in Venice, Metro in Rome & Naples, and around major monuments.",
+          "Simple rules: bag in front of you, zipped. Phone in a front pocket or bag — never a back pocket.",
+          "Avoid anyone who approaches you with 'free' bracelets, rosemary sprigs, or a clipboard with a petition to sign.",
+          "Leave copies of passports and card details in your email (draft folder) — accessible anywhere if you need them."
+        ]
+      }
+    ];
+
+    const recommendedApps = [
+      { name: "Trenitalia", icon: "🚄", desc: "Official Italian rail app. Buy and store tickets, check real-time delays, track your platform.", link: "https://www.trenitalia.com/en.html", tag: "Essential" },
+      { name: "Italo", icon: "🚅", desc: "Italy's private high-speed rail. Often cheaper than Trenitalia on the same routes — check both before booking.", link: "https://www.italotreno.it/en", tag: "Essential" },
+      { name: "Google Translate", icon: "🌐", desc: "Download the Italian language pack for offline use. The camera translation feature reads menus in real time.", link: "https://translate.google.com/", tag: "Essential" },
+      { name: "Maps.me or Google Maps (offline)", icon: "🗺️", desc: "Download offline maps for each city before you leave the hotel. Works without data.", link: "https://maps.me/", tag: "Useful" },
+      { name: "XE Currency", icon: "💱", desc: "Real-time EUR/USD converter. Useful when shopping or checking if a price seems right.", link: "https://www.xe.com/apps/", tag: "Useful" },
+      { name: "Stasher / Radical Storage", icon: "🧳", desc: "Find luggage storage near any station or attraction. Invaluable for day trips and early arrivals.", link: "https://stasher.com/", tag: "Useful" },
+      { name: "Tiqets / GetYourGuide", icon: "🎫", desc: "Skip-the-line tickets for major attractions. Book 2–7 days ahead for most sites, weeks ahead for Vatican.", link: "https://www.getyourguide.com/", tag: "Book ahead" },
+      { name: "TheFork (El Tenedor)", icon: "🍽️", desc: "Restaurant reservations across Italy. Many places list discounts for off-peak bookings.", link: "https://www.thefork.it/", tag: "Useful" }
+    ];
+
+    /* ─── MAIN APP ─── */
+    function App() {
+      const [activeCity, setActiveCity] = useState(cityKeys[0]);
+      const [activeTab, setActiveTab]   = useState('overview');
+      const [priceFilter, setPriceFilter] = useState('all');
+      const current = itineraryData[activeCity];
+      const filteredFood = current.food.filter(p => priceFilter === 'all' ? true : p.price === priceFilter);
+
+      function changeCity(key) {
+        setActiveCity(key);
+        setActiveTab('overview');
+        setPriceFilter('all');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      const activeIndex = cityKeys.indexOf(activeCity);
+
+      return (
+        <div className="min-h-screen bg-stone-100 text-stone-800">
+
+          {/* ── HEADER ── */}
+          <header className="bg-white shadow-sm sticky top-0 z-50">
+            <div className="max-w-4xl mx-auto px-4 pt-4 pb-3">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h1 className="text-2xl font-bold text-stone-900 flex items-center gap-2">
+                    <Navigation className="w-6 h-6 text-blue-600" />
+                    Italy Grand Tour
+                  </h1>
+                  <p className="text-sm text-stone-500">Your quick, safe & delicious guide — Allison and friends 🇮🇹</p>
+                </div>
+              </div>
+
+              {/* Route visualization */}
+              <div className="relative mb-3 hidden md:block">
+                <div className="flex items-center gap-0">
+                  {cityKeys.map((key, i) => {
+                    const city = itineraryData[key];
+                    const isActive = key === activeCity;
+                    const isPast   = i < activeIndex;
+                    return (
+                      <React.Fragment key={key}>
+                        <button
+                          onClick={() => changeCity(key)}
+                          className={`flex flex-col items-center gap-1 group transition-all ${isActive ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+                        >
+                          <span className={`text-xl leading-none`}>{city.emoji}</span>
+                          <span className={`text-[10px] font-semibold whitespace-nowrap ${isActive ? 'text-stone-900' : 'text-stone-500'}`}>{city.name}</span>
+                          <div className={`w-3 h-3 rounded-full border-2 ${isActive ? 'bg-blue-600 border-blue-600' : isPast ? 'bg-stone-400 border-stone-400' : 'bg-white border-stone-300'}`}></div>
+                        </button>
+                        {i < cityKeys.length - 1 && (
+                          <div className={`flex-1 h-0.5 mb-3 mx-1 ${i < activeIndex ? 'bg-blue-500' : 'bg-stone-200'}`}></div>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* City pill tabs (mobile + desktop) */}
+              <div className="flex overflow-x-auto pb-1 gap-2 snap-x scrollbar-hide">
+                {cityKeys.map((key, index) => {
+                  const city = itineraryData[key];
+                  const isActive = activeCity === key;
+                  return (
+                    <button key={key} onClick={() => changeCity(key)}
+                      className={`snap-start whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5
+                        ${isActive ? `${city.color} text-white shadow-md scale-105` : 'bg-stone-200 text-stone-600 hover:bg-stone-300'}`}>
+                      <span>{city.emoji}</span> {city.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-4xl mx-auto px-4 py-8">
+
+            {/* ── CITY HERO ── */}
+            <div className={`${current.color} rounded-2xl p-6 md:p-10 text-white shadow-lg mb-6 transition-all duration-500 fade-in`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-4xl mb-2">{current.emoji}</p>
+                  <h2 className="text-4xl md:text-5xl font-bold mb-2">{current.name}</h2>
+                  <p className="text-lg opacity-90 italic">{current.subtitle}</p>
+                </div>
+                <a href={`https://www.google.com/maps/search/?api=1&query=${current.mapQuery}`}
+                   target="_blank" rel="noopener noreferrer"
+                   className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+                  <Navigation className="w-4 h-4" /> Map
+                </a>
+              </div>
+            </div>
+
+            {/* ── TAB SWITCHER ── */}
+            <div className="flex gap-2 mb-6 bg-white rounded-xl p-1.5 shadow-sm border border-stone-100">
+              {[
+                { id: 'overview', label: '🗺️ Overview' },
+                { id: 'tour',     label: '🚶 Walking Tour' },
+                { id: 'daytrips', label: '🚂 Day Trips' },
+              ].map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all
+                    ${activeTab === tab.id ? `${current.color} text-white shadow-md` : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'}`}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* ── OVERVIEW TAB ── */}
+            {activeTab === 'overview' && (
+              <div className="fade-in grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-6">
+
+                  {/* Guide's Note */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-stone-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-blue-400"></div>
+                    <div className="flex gap-3 mb-3 items-center text-blue-800">
+                      <Info className="w-5 h-5" /><h3 className="font-bold text-lg">Guide's Note</h3>
+                    </div>
+                    <p className="text-stone-600 leading-relaxed">{current.guideNote}</p>
+                  </div>
+
+                  {/* Getting Around */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-stone-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-orange-400"></div>
+                    <div className="flex gap-3 mb-3 items-center text-orange-800">
+                      <ShieldAlert className="w-5 h-5" /><h3 className="font-bold text-lg">Getting Around & Safety</h3>
+                    </div>
+                    <p className="text-stone-600 leading-relaxed mb-4">{current.transport}</p>
+                    <div className="bg-orange-50 rounded-lg p-3 mb-4 border border-orange-200">
+                      <div className="flex gap-2 items-center text-orange-800 font-bold mb-1">
+                        <Train className="w-4 h-4" /><h4>Train Departure</h4>
+                      </div>
+                      <p className="text-sm text-stone-700">{current.trainDeparture}</p>
+                    </div>
+                    <div className="border-t border-stone-100 pt-4 mt-2">
+                      <h4 className="font-semibold text-stone-800 mb-3 flex items-center gap-2">
+                        <Bus className="w-4 h-4 text-stone-500" /> Useful Links & Numbers
+                      </h4>
+                      <div className="space-y-3 text-sm text-stone-600">
+                        <div className="flex items-start gap-2">
+                          <strong className="min-w-[90px]">Transit:</strong>
+                          <a href={current.transportLink.url} target="_blank" rel="noopener noreferrer"
+                             className="text-blue-600 hover:underline flex items-center gap-1 font-medium">
+                            {current.transportLink.name} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <strong className="min-w-[90px]">Local Taxi:</strong>
+                          <a href={`tel:${current.taxiPhone.replace(/\s+/g,'')}`}
+                             className="text-rose-600 hover:text-rose-800 flex items-center gap-1 font-medium bg-rose-50 px-2 py-0.5 rounded">
+                            <Phone className="w-3 h-3" /> {current.taxiPhone}
+                          </a>
+                        </div>
+                        <div className="pt-2 border-t border-stone-200 mt-3">
+                          <div className="flex items-center gap-2 mb-2 text-red-700 font-semibold">
+                            <AlertCircle className="w-4 h-4" /><span>National Emergencies (Free)</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <a href="tel:112" className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1.5 rounded hover:bg-red-100 font-bold">
+                              <Phone className="w-3 h-3" /> 112 (Carabinieri / All)
+                            </a>
+                            <a href="tel:118" className="flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1.5 rounded hover:bg-red-100 font-bold">
+                              <Phone className="w-3 h-3" /> 118 (Ambulance)
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Must-Sees */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-stone-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-emerald-400"></div>
+                    <div className="flex gap-3 mb-4 items-center text-emerald-800">
+                      <MapPin className="w-5 h-5" /><h3 className="font-bold text-lg">Quick "Must-Sees"</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {current.mustSee.map((item, i) => (
+                        <li key={i} className="flex flex-col gap-2 text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-100">
+                          <div className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">{i+1}</span>
+                            <span className="font-medium text-stone-800 pt-0.5">{item.name}</span>
+                          </div>
+                          {item.link && (
+                            <div className="ml-9">
+                              <a href={item.link} target="_blank" rel="noopener noreferrer"
+                                 className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100/50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors">
+                                <Ticket className="w-3 h-3" /> Official Tickets / Booking
+                              </a>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${current.mapQuery}`}
+                     target="_blank" rel="noopener noreferrer"
+                     className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center font-bold py-4 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2">
+                    <Navigation className="w-5 h-5" /> Open in Google Maps
+                  </a>
+
+                  {/* Food */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-stone-100">
+                    <div className="flex gap-3 items-center text-rose-700 mb-4">
+                      <Utensils className="w-5 h-5" /><h3 className="font-bold text-lg">Eat & Drink</h3>
+                    </div>
+                    <div className="flex gap-2 mb-4 bg-stone-50 p-1.5 rounded-lg text-sm border border-stone-100">
+                      {['all','budget','pricey'].map(f => (
+                        <button key={f} onClick={() => setPriceFilter(f)}
+                          className={`flex-1 py-1.5 rounded-md font-medium transition-colors
+                            ${priceFilter===f ? (f==='pricey'?'bg-white shadow text-rose-700':f==='budget'?'bg-white shadow text-emerald-700':'bg-white shadow text-stone-800') : 'text-stone-500 hover:text-stone-700'}`}>
+                          {f==='all'?'All':f==='budget'?'$ Casual':'$$$ Fancy'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="space-y-4">
+                      {filteredFood.length > 0 ? filteredFood.map((place, i) => (
+                        <div key={i} className="border-b border-stone-100 last:border-0 pb-4 last:pb-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-stone-800">{place.name}</h4>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${place.price==='pricey'?'bg-rose-100 text-rose-700':'bg-emerald-100 text-emerald-700'}`}>
+                              {place.price==='pricey'?'$$$':'$/$$'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-stone-500 mb-2">{place.desc}</p>
+                          {place.link && (
+                            <a href={place.link} target="_blank" rel="noopener noreferrer"
+                               className="text-xs font-semibold text-rose-600 hover:text-rose-800 inline-flex items-center gap-1 bg-rose-50 px-2 py-1 rounded">
+                              Map / Website <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      )) : <p className="text-sm text-stone-500 italic text-center py-4">No places for this filter.</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── WALKING TOUR TAB ── */}
+            {activeTab === 'tour' && (
+              <div className="fade-in space-y-5">
+                <div className={`${current.color} rounded-xl p-4 text-white text-sm opacity-90`}>
+                  <p className="font-semibold mb-1">⏱️ How to use this</p>
+                  <p>This is a suggested 1-day itinerary. If you have 2 days, take it slower, revisit favorites, and explore side streets. The best discoveries happen when you wander.</p>
+                </div>
+                {current.tour.map((block, i) => (
+                  <div key={i} className={`${block.bg} border ${block.border} rounded-xl p-5`}>
+                    <div className={`flex items-center gap-3 mb-4`}>
+                      <span className="text-3xl">{block.icon}</span>
+                      <h3 className={`font-bold text-xl ${block.text}`}>{block.time}</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {block.items.map((item, j) => (
+                        <li key={j} className="flex items-start gap-3 text-stone-700">
+                          <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full ${block.border} border flex items-center justify-center text-xs font-bold ${block.text}`}>{j+1}</span>
+                          <span className="leading-relaxed text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                {current.tour2day && (
+                  <>
+                    <div className="flex items-center gap-3 my-6">
+                      <div className="flex-1 h-px bg-stone-300"></div>
+                      <span className="text-sm font-semibold text-stone-500 whitespace-nowrap">If you have a second day →</span>
+                      <div className="flex-1 h-px bg-stone-300"></div>
+                    </div>
+                    {current.tour2day.map((block, i) => (
+                      <div key={i} className={`${block.bg} border ${block.border} rounded-xl p-5`}>
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="text-3xl">{block.icon}</span>
+                          <h3 className={`font-bold text-xl ${block.text}`}>{block.time}</h3>
+                        </div>
+                        <ul className="space-y-3">
+                          {block.items.map((item, j) => (
+                            <li key={j} className="flex items-start gap-3 text-stone-700">
+                              <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full ${block.border} border flex items-center justify-center text-xs font-bold ${block.text}`}>{j+1}</span>
+                              <span className="leading-relaxed text-sm">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ── DAY TRIPS TAB ── */}
+            {activeTab === 'daytrips' && (
+              <div className="fade-in space-y-4">
+                <div className="bg-white rounded-xl p-4 border border-stone-100 shadow-sm text-sm text-stone-600">
+                  💡 <strong>Tip:</strong> Day trips work best when you leave early (8–9am) and return by 6pm. Store your big luggage at the station (Deposito Bagagli or <a href="https://stasher.com/" className="text-blue-600 underline" target="_blank">Stasher.com</a>) and travel light.
+                </div>
+                {current.dayTrips.map((trip, i) => (
+                  <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-stone-100 flex items-start gap-4">
+                    <span className="text-4xl flex-shrink-0">{trip.emoji}</span>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="font-bold text-stone-900 text-lg">{trip.name}</h3>
+                        <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">{trip.time}</span>
+                      </div>
+                      <p className="text-sm text-stone-600 leading-relaxed mb-3">{trip.desc}</p>
+                      <a href={trip.link} target="_blank" rel="noopener noreferrer"
+                         className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+                        Timetables & Tickets <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── PRACTICAL ESSENTIALS ── */}
+            <div className="mt-10 bg-stone-800 rounded-2xl p-6 shadow-lg text-white">
+              <div className="flex gap-3 mb-6 items-center border-b border-stone-600/50 pb-4">
+                <Info className="w-6 h-6 text-stone-300" />
+                <h3 className="font-bold text-2xl">Practical Essentials</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {practicalEssentials.map((section, i) => (
+                  <div key={i} className={`${section.color} border ${section.border} rounded-xl p-4`}>
+                    <h4 className="font-bold text-base mb-3">{section.icon} {section.title}</h4>
+                    <ul className="space-y-2">
+                      {section.items.map((item, j) => (
+                        <li key={j} className="text-sm text-stone-200 leading-relaxed flex items-start gap-2">
+                          <span className="text-stone-400 mt-1 flex-shrink-0">›</span> {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── RECOMMENDED APPS ── */}
+            <div className="mt-8 bg-zinc-900 rounded-2xl p-6 shadow-lg text-white">
+              <div className="flex gap-3 mb-6 items-center border-b border-zinc-700/50 pb-4">
+                <Smartphone className="w-6 h-6 text-zinc-300" />
+                <h3 className="font-bold text-2xl">Apps & Tools to Download</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {recommendedApps.map((app, i) => (
+                  <a key={i} href={app.link} target="_blank" rel="noopener noreferrer"
+                     className="flex items-start gap-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl p-4 transition-colors group">
+                    <span className="text-2xl flex-shrink-0">{app.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-sm text-white">{app.name}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${app.tag==='Essential'?'bg-red-800 text-red-200':app.tag==='Book ahead'?'bg-amber-800 text-amber-200':'bg-zinc-700 text-zinc-300'}`}>
+                          {app.tag}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 leading-relaxed">{app.desc}</p>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-zinc-500 group-hover:text-zinc-300 flex-shrink-0 mt-1 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* ── SURVIVAL PHRASES ── */}
+            <div className="mt-8 bg-indigo-900 rounded-2xl p-6 shadow-lg text-white">
+              <div className="flex gap-3 mb-6 items-center border-b border-indigo-700/50 pb-4">
+                <MessageCircle className="w-6 h-6 text-indigo-300" />
+                <h3 className="font-bold text-2xl">Survival Italian Phrases</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {survivalPhrases.map((phrase, i) => (
+                  <div key={i} className="bg-indigo-800/50 rounded-lg p-4 border border-indigo-700 hover:bg-indigo-700/50 transition-colors">
+                    <p className="font-bold text-sm text-indigo-200 mb-1">{phrase.eng}</p>
+                    <p className="font-extrabold text-lg text-white mb-1">{phrase.ita}</p>
+                    <p className="text-xs text-indigo-300 italic">Say: "{phrase.phon}"</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── TOURIST SITUATION PHRASES ── */}
+            <div className="mt-8 bg-violet-900 rounded-2xl p-6 shadow-lg text-white">
+              <div className="flex gap-3 mb-2 items-center border-b border-violet-700/50 pb-4">
+                <MessageCircle className="w-6 h-6 text-violet-300" />
+                <h3 className="font-bold text-2xl">Tourist Phrases in Action</h3>
+              </div>
+              <p className="text-violet-300 text-sm mb-6 pt-2">Real sentences for real situations — organized by where you are.</p>
+              {[
+                {
+                  cat: "🍽️ At the Restaurant", bg: "bg-rose-900/50", border: "border-rose-700",
+                  phrases: [
+                    { eng: "A table for two, please", ita: "Un tavolo per due, per favore", phon: "oon TAH-voh-loh pehr DOO-eh, pehr fah-VOH-reh" },
+                    { eng: "What do you recommend?", ita: "Cosa consiglia?", phon: "KOH-zah kon-SEE-lyah?" },
+                    { eng: "I'll have this (pointing)", ita: "Prendo questo", phon: "PREHN-doh KWES-toh" },
+                    { eng: "Without [meat / gluten]", ita: "Senza [carne / glutine]", phon: "SEN-tsah [KAR-neh / GLOO-tee-neh]" },
+                    { eng: "Is service included?", ita: "Il servizio è incluso?", phon: "eel sehr-VEET-syoh eh een-KLOO-zoh?" },
+                    { eng: "Can we pay separately?", ita: "Possiamo pagare separati?", phon: "poh-SYAH-moh pah-GAH-reh seh-pah-RAH-tee?" },
+                  ]
+                },
+                {
+                  cat: "🛍️ Shopping & Markets", bg: "bg-amber-900/50", border: "border-amber-700",
+                  phrases: [
+                    { eng: "How much is this?", ita: "Quanto costa questo?", phon: "KWAHN-toh KOS-tah KWES-toh?" },
+                    { eng: "Can I try it on?", ita: "Posso provarlo?", phon: "POS-soh proh-VAR-loh?" },
+                    { eng: "Do you have a smaller / bigger size?", ita: "Ha una taglia più piccola / grande?", phon: "ah OO-nah TAH-lyah pyoo PEEK-koh-lah / GRAHN-deh?" },
+                    { eng: "I'm just looking, thanks", ita: "Sto solo guardando, grazie", phon: "stoh SOH-loh gwahr-DAHN-doh, GRAHT-syeh" },
+                    { eng: "Do you accept cards?", ita: "Accettate carte di credito?", phon: "ah-chet-TAH-teh KAR-teh dee KREH-dee-toh?" },
+                    { eng: "Can you give me a discount?", ita: "Mi fa uno sconto?", phon: "mee fah OO-noh SKON-toh?" },
+                  ]
+                },
+                {
+                  cat: "🗺️ Getting Around", bg: "bg-sky-900/50", border: "border-sky-700",
+                  phrases: [
+                    { eng: "Where is…? (+ place name)", ita: "Dov'è…?", phon: "doh-VEH…?" },
+                    { eng: "How do I get to the station?", ita: "Come arrivo alla stazione?", phon: "KOH-meh ar-REE-voh AL-lah stat-SYOH-neh?" },
+                    { eng: "Is it far from here?", ita: "È lontano da qui?", phon: "eh lon-TAH-noh dah KWEE?" },
+                    { eng: "On the left / On the right / Straight ahead", ita: "A sinistra / A destra / Dritto", phon: "ah see-NEE-strah / ah DES-trah / DREET-toh" },
+                    { eng: "One ticket to [city], please", ita: "Un biglietto per [città], per favore", phon: "oon beel-YET-toh pehr [cheet-TAH], pehr fah-VOH-reh" },
+                    { eng: "Which platform?", ita: "Quale binario?", phon: "KWAH-leh bee-NAH-ryoh?" },
+                  ]
+                },
+                {
+                  cat: "🏛️ At Museums & Attractions", bg: "bg-emerald-900/50", border: "border-emerald-700",
+                  phrases: [
+                    { eng: "Two tickets, please", ita: "Due biglietti, per favore", phon: "DOO-eh beel-YET-tee, pehr fah-VOH-reh" },
+                    { eng: "Is there a student discount?", ita: "C'è uno sconto studenti?", phon: "cheh OO-noh SKON-toh stoo-DEN-tee?" },
+                    { eng: "What time does it close?", ita: "A che ora chiude?", phon: "ah keh OH-rah KYOO-deh?" },
+                    { eng: "Can I take photos here?", ita: "Posso fare foto qui?", phon: "POS-soh FAH-reh FOH-toh KWEE?" },
+                    { eng: "Where is the exit?", ita: "Dov'è l'uscita?", phon: "doh-VEH loo-SHEE-tah?" },
+                    { eng: "Is there an audio guide in English?", ita: "C'è una guida audio in inglese?", phon: "cheh OO-nah GWEE-dah OW-dyoh een een-GLEH-zeh?" },
+                  ]
+                },
+                {
+                  cat: "🏨 At the Hotel", bg: "bg-teal-900/50", border: "border-teal-700",
+                  phrases: [
+                    { eng: "I have a reservation", ita: "Ho una prenotazione", phon: "oh OO-nah preh-noh-tat-SYOH-neh" },
+                    { eng: "Can we check in early / late?", ita: "Possiamo fare il check-in prima / tardi?", phon: "poh-SYAH-moh FAH-reh eel chek-een PREE-mah / TAR-dee?" },
+                    { eng: "Can I leave my luggage here?", ita: "Posso lasciare i bagagli qui?", phon: "POS-soh lah-SHAHR-eh ee bah-GAH-lyee KWEE?" },
+                    { eng: "The WiFi password, please", ita: "La password del WiFi, per favore", phon: "lah PAS-word del WAY-fee, pehr fah-VOH-reh" },
+                    { eng: "The room is too hot / cold", ita: "La camera è troppo calda / fredda", phon: "lah KAH-meh-rah eh TROP-poh KAL-dah / FRED-dah" },
+                    { eng: "What time is breakfast?", ita: "A che ora è la colazione?", phon: "ah keh OH-rah eh lah koh-lat-SYOH-neh?" },
+                  ]
+                },
+                {
+                  cat: "🚨 Emergencies & Help", bg: "bg-red-900/50", border: "border-red-700",
+                  phrases: [
+                    { eng: "Call the police!", ita: "Chiami la polizia!", phon: "KYAH-mee lah poh-leet-SYAH!" },
+                    { eng: "I need a doctor", ita: "Ho bisogno di un medico", phon: "oh bee-ZON-yoh dee oon MEH-dee-koh" },
+                    { eng: "My bag was stolen", ita: "Mi hanno rubato la borsa", phon: "mee AN-noh roo-BAH-toh lah BOR-sah" },
+                    { eng: "I'm lost", ita: "Mi sono persa / perso", phon: "mee SOH-noh PER-sah / PER-soh" },
+                    { eng: "Where is the nearest pharmacy?", ita: "Dov'è la farmacia più vicina?", phon: "doh-VEH lah far-mah-CHEE-ah pyoo vee-CHEE-nah?" },
+                    { eng: "I don't feel well", ita: "Non mi sento bene", phon: "non mee SEN-toh BEH-neh" },
+                  ]
+                },
+              ].map((section, si) => (
+                <div key={si} className="mb-6">
+                  <h4 className="font-bold text-lg text-violet-200 mb-3">{section.cat}</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {section.phrases.map((p, pi) => (
+                      <div key={pi} className={`${section.bg} border ${section.border} rounded-lg p-3`}>
+                        <p className="text-xs font-semibold text-violet-300 mb-0.5">{p.eng}</p>
+                        <p className="font-bold text-white text-sm mb-0.5">{p.ita}</p>
+                        <p className="text-xs text-violet-400 italic">🔊 {p.phon}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── TRAIN PRO-TIPS ── */}
+            <div className="mt-8 bg-sky-900 rounded-2xl p-6 shadow-lg text-white">
+              <div className="flex gap-3 mb-6 items-center border-b border-sky-700/50 pb-4">
+                <Train className="w-6 h-6 text-sky-300" />
+                <h3 className="font-bold text-2xl">Italian Train Pro-Tips</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { icon: <MapPin className="w-4 h-4"/>, title: "Track the Platform", text: "Platforms (Binari) are announced only 10–15 minutes before departure. Download the Trenitalia or Italo apps to track your train in real-time." },
+                  { icon: <ShieldAlert className="w-4 h-4"/>, title: "Luggage Safety", text: "Keep an eye on your bags while boarding. Store large suitcases in the racks at the ends of the carriage, and smaller ones above your seat." },
+                  { icon: <Ticket className="w-4 h-4"/>, title: "Ticket Validation", text: "If you have a physical paper ticket for a regional train, you MUST validate it at the yellow machines before boarding. E-tickets just need QR code scan." },
+                  { icon: <Navigation className="w-4 h-4"/>, title: "Station Names", text: "Cities have multiple stations! Always double-check: Florence is 'Firenze S.M. Novella', Rome is 'Roma Termini', Naples is 'Napoli Centrale'." },
+                  { icon: <Luggage className="w-4 h-4"/>, title: "Luggage Storage (Deposito Bagagli)", text: "All major stations have paid luggage storage (€6–8/bag). Use it for day trips so you're not dragging suitcases around Pompeii or Burano. Stasher.com also lists options near attractions." },
+                  { icon: <Train className="w-4 h-4"/>, title: "Trenitalia vs Italo", text: "Italy has two high-speed rail companies. Trenitalia (red Frecciarossa) and Italo (red Italo trains). Check BOTH for the same route — prices can differ significantly. Book as early as possible." }
+                ].map((tip, i) => (
+                  <div key={i} className="bg-sky-800/50 rounded-lg p-4 border border-sky-700">
+                    <h4 className="font-bold text-sky-200 mb-1 flex items-center gap-2">{tip.icon} {tip.title}</h4>
+                    <p className="text-sm text-sky-50">{tip.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </main>
+
+          <footer className="text-center py-10 text-stone-400 text-sm mt-4">
+            <p className="text-2xl mb-2">🇮🇹</p>
+            <p className="font-semibold text-stone-600">Created for a fast, fabulous, and very well-fed Italian adventure.</p>
+            <p className="mt-1">Buon viaggio, Allison & friends! 🚂</p>
+          </footer>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
